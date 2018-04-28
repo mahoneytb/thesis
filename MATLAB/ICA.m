@@ -8,10 +8,10 @@ data = data - sum(data, 2)/M;
 % whiten the data
 covar = cov(data');
 [V, D] = eig(covar);
-X = V * D^(-1/2) * V' * data;
+X = D^(-1/2) * V' * data; %V* ___
 
 % FastICA
-syms g(u) gDer(u)
+%syms g(u) gDer(u)
 %g(u) = tanh(u);
 %gDer(u) = 1 - (tanh(u))^2;
 

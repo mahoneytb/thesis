@@ -1,15 +1,39 @@
 clear;
 load('Task4Data.mat')
 
-%% sample from 20 subjects over 30 seconds for 15 ICs
+%%
+% Create filters
+fs = 160;
+fc_low = 79;
+fc_high = 1;
+fc_notch = [58 62];
+
+% Create low pass
+[b_low,a_low] = butter(5,fc_low/(fs/2));
+H1=dfilt.df2t(b_low,a_low);
+
+% Create high pass
+[b_high,a_high] = butter(5,fc_high/(fs/2),'high');
+H2=dfilt.df2t(b_high,a_high);
+
+% Create 60Hz notch
+[b_notch,a_notch] = butter(2,fc_notch/(fs/2),'stop');
+H3=dfilt.df2t(b_notch,a_notch);
+
+% Combine filters
+Hcas=dfilt.cascade(H1,H2,H3);
+% Hcas.freqz()
+
+%% sample from 20 subjects over 20 seconds for 15 ICs
 for i = 1:20
     disp('Subject:')
     disp(i)
-    for j = 1:5
+    for j = 1:10 %6
         disp('Sample:')
         disp(j)
-        data = squeeze(record(i, 1:64, (j*5*160):((j*5+5)*160)));
-        [S, W] = ICA(data, 15);
+        data = squeeze(record(i, 1:64, (j*2*160):((j*2+2)*160)));
+        filtData = filter(Hcas, data, 2);
+        [S, W] = ICA(filtData, 15);
         Sfull(i, j, :, :) = S;
         Wfull(i, j, :, :) = W;
     end
@@ -35,62 +59,71 @@ coords = [179, 227; 220, 230; 259, 234; 300, 235; 344, 235; 383, 229; 423, 226; 
 [xi yi] = meshgrid(1:540, 1:600);
 
 % Time specifications:
-   Fs = 160;                      % samples per second
-   dt = 1/Fs;                     % seconds per sample
-   StopTime = 5;                  % seconds
-   t = (0:dt:StopTime-dt)';
-   N = size(data,2);
+Fs = 160;                      % samples per second
+dt = 1/Fs;                     % seconds per sample
+StopTime = 5;                  % seconds
+t = (0:dt:StopTime-dt)';
+N = size(data,2);               % 321
 
-   label = [];
+label = [];
+%%
+% Plot the ICA
+% subject 7 sample 3 component 3
+cont = 0;
 for subject = 1:20
-    for sample = 1:5
+    for sample = 1:10
         for c = 1:15
-            str = sprintf('Subject: %d, sample: %d, component: %d', subject, sample, c);
-            disp(str)
-            clf
-            subplot(2, 2, [1 3])
-            image(brain);
-            hold on
-            W = squeeze(Wfull(subject, sample, :, c));
-            S = squeeze(Sfull(subject, sample, c, :));
-            if min(W) < 0
-                plotW = W + abs(min(W));
-            else
-                plotW = W - min(W);
+            if (subject == 15)&&(sample==7)&&(c==1) %correct
+                cont = 1;
             end
-            plotW = plotW * 255 / max(plotW);
+            if cont == 1
+                fprintf('Subject: %d, sample: %d, component: %d\n', subject, sample, c);
+                clf
+                subplot(2, 2, [1 3])
+                image(brain);
+                hold on
+                W = squeeze(Wfull(subject, sample, :, c));
+                S = squeeze(Sfull(subject, sample, c, :));
+                if min(W) < 0
+                plotW = W + abs(min(W));
+                else
+                plotW = W - min(W);
+                end
+                plotW = plotW * 255 / max(plotW);
 
-            scatter(coords(:, 1), coords(:, 2), 20, 'MarkerEdgeColor',[0 .5 .5],...
+                scatter(coords(:, 1), coords(:, 2), 20, 'MarkerEdgeColor',[0 .5 .5],...
                       'MarkerFaceColor',[0 .7 .7], 'LineWidth',2)
-            zi = griddata(coords(:, 1), coords(:, 2), plotW(:, 1), xi, yi);
-            h = surfc(xi, yi, zi, 'FaceAlpha',0.7, 'LineStyle','none', 'FaceColor', 'flat');
-            set(gca,'YTickLabel',[]);
-            set(gca,'XTickLabel',[]);
-            colormap(jet);
+                zi = griddata(coords(:, 1), coords(:, 2), plotW(:, 1), xi, yi);
+                h = surfc(xi, yi, zi, 'FaceAlpha',0.7, 'LineStyle','none', 'FaceColor', 'flat');
+                set(gca,'YTickLabel',[]);
+                set(gca,'XTickLabel',[]);
+                colormap(jet);
 
-            subplot(2, 2, 2)
-            plot(0:1/160:5, S)
-            title('Time Response')
-            xlabel('Time (in seconds)')
-            xlim([0 5])
+                subplot(2, 2, 2)
+                plot(0:1/160:2, S)
+                title('Time Response')
+                xlabel('Time (in seconds)')
+                xlim([0 2])
 
-            subplot(2, 2, 4)
-            % Fourier Transform:
-           X = fftshift(fft(S));
-           % Frequency specifications:
-           dF = Fs/N;                      % hertz
-           f = -Fs/2:dF:Fs/2-dF;           % hertz
-           plot(f(ceil(length(f)/2):end),abs(X(ceil(length(f)/2):end))/N);
-           xlabel('Frequency (in hertz)');
-           xlim([0 70])
-           title('Frequency Response');
+                subplot(2, 2, 4)
+    %             % Fourier Transform:
+    %             X = log10(fftshift(fft(S))); %pwelch for filtering
+    %             % Frequency specifications:
+    %             dF = Fs/N;                      % hertz
+    %             f = -Fs/2:dF:Fs/2-dF;           % hertz
+    %             plot(f(ceil(length(f)/2):end),abs(X(ceil(length(f)/2):end))/N);
+                pwelch(S, 120, 60, 120, 160)
+    %             xlabel('Frequency (in hertz)');
+    %             xlim([0 70])
+    %             title('Frequency Response');
 
-           in = input('Artefact?\n', 's');
-           if isempty(in)
-               label = [label 'N'];
-           else
-               label = [label 'A'];
-           end
+                in = input('Artefact?\n', 's');
+                if isempty(in)
+                    label = [label 'N'];
+                else
+                    label = [label 'A'];
+                end
+            end
         end
     end
 end
