@@ -1,3 +1,4 @@
+% Script for assigning labels to training data for ICA artefact filter
 clear;
 load('Task4Data.mat')
 
