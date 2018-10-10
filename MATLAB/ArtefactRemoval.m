@@ -1,6 +1,6 @@
 % Script to remove artefacts from entire dataset (task4)
 clear;
-load('Task4Data.mat')
+load('testRecord.mat')
 load('bestNet.mat')
 
 %%
@@ -27,14 +27,14 @@ Hcas=dfilt.cascade(H1,H2,H3);
 % Hcas.freqz()
 
 %% Get ICs for all samples - sampled at 2Hz, sample width = 2 seconds
-for i = 1:109
+for i = 1:20 %109
     for j = 1:240 %6
-        fprintf('Sample: %d of 240 for Subject: %d \n', j, i);
+        fprintf('Test Sample: %d of 1200 for Subject: %d \n', j, i);
         % Resample every 0.5 seconds
         t0 = (j-1)*fs/2 + 1;
         % Sample over 2 second period
         tEnd = t0 + 2*fs;
-        data = squeeze(record(i, 1:64, t0:tEnd));
+        data = squeeze(testrecord(i, 1:64, t0:tEnd));
         filtData = filter(Hcas, data, 2);
         [S, W] = ICA(filtData, 15);
         Sfull(i, j, :, :) = S;
@@ -56,8 +56,8 @@ artefactsRemoved = [];
 count = 0;
 %%
 % Detect artefacts and remove
-for subject = 88:109
-    for sample = 98:240
+for subject = 1:20
+    for sample = 1:240
         fprintf('Subject: %d Sample: %d\n', subject, sample);
         for c = 1:15
             W = squeeze(Wfull(subject, sample, :, c));

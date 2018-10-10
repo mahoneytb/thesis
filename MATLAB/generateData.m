@@ -1,19 +1,21 @@
 %% Read .edf data and .txt events for storage
+% All things say task 4 BUT HAVE BEEN TAKEN FROM TASK 2!! WHICH IS SET 4!!
+% MORE DATA CAN BE RETRIEVED FROM SETS 8 AND 12!!
 clear
 s = [0 0];
 record = [];
 
 % Add every subject recording to variable record
-for k = 1:109
+for k = 1:20 %109
     if k < 10
-        filename = sprintf('/physionetData/S00%d/S00%dR04.edf', k, k);
-        annfilename = sprintf('physionetData/annotations/S00%dR04ann.txt', k);
+        filename = sprintf('physionetData/S00%d/S00%dR08.edf', k, k);
+        annfilename = sprintf('physionetData/annotations/S00%dR08ann.txt', k);
     elseif k < 100
-        filename = sprintf('/physionetData/S0%d/S0%dR04.edf', k, k);
-        annfilename = sprintf('physionetData/annotations/S0%dR04ann.txt', k);
+        filename = sprintf('physionetData/S0%d/S0%dR08.edf', k, k);
+        annfilename = sprintf('physionetData/annotations/S0%dR08ann.txt', k);
     else
-        filename = sprintf('/physionetData/S%d/S%dR04.edf', k, k);
-        annfilename = sprintf('physionetData/annotations/S%dR04ann.txt', k);
+        filename = sprintf('physionetData/S%d/S%dR08.edf', k, k);
+        annfilename = sprintf('physionetData/annotations/S%dR08ann.txt', k);
     end
     
     [hdr, r] = edfread(filename);
@@ -28,7 +30,7 @@ for k = 1:109
             elseif d > 0
                 r = padarray(record, [0 0 abs(d)], 0, 'post');
             end        
-        end;
+        end
     end
     
     % Get the annotations
@@ -52,9 +54,9 @@ for k = 1:109
     
     % Convert from ann duration to array of annotations for each sample
     % Anns{k} = annoArray(a, d, last);
-    Anns{k} = {a d last};
+    testAnns{k} = {a d last};
     
-    record(k, :, :) = r;
+    testrecord(k, :, :) = r(:, 1:19680);
     disp(k)
 end
 

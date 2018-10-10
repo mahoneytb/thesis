@@ -1,4 +1,4 @@
-% Returns features of component
+% Returns features of component (ICA FEATURES)
 function features = getFeatures(W, S)
 % Normalised weights
 if min(W) < 0

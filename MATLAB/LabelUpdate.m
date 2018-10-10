@@ -36,7 +36,7 @@ subCount = 1;
 for subject = 1:20
     for sample = 1:10
         for c = 1:15
-            if count > 2480 %Skip to here
+            if count > 1 %Skip to here
                 if newLabel(count) == 'N'
                     image(brain);
                     hold on
