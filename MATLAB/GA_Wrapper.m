@@ -60,7 +60,7 @@ for seed = 1%:100
     scores = zeros(1, N_SETS);
     ratio = zeros(N_SETS, 2);
     gen = 1;
-    NUM_GENS = 10000 ;
+    NUM_GENS = 1000 ;
     gStruct.gens = NUM_GENS;
     while (gen < NUM_GENS)
         fprintf('Beggining generation %d\n', gen)
@@ -74,8 +74,9 @@ for seed = 1%:100
             % fprintf('Scored %d of 8\n', i);
         end
         % if gen == (NUM_GENS-1), break; end
-
-        error = scores - sum(pool).*0.002;
+        
+        %0.0001 0.234 with 300
+        error = scores - sum(pool).*0.005;
         print = [error; sum(pool); scores];
         fprintf('Candidates:\n')
         disp(print)

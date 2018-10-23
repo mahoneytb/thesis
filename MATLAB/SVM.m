@@ -24,7 +24,7 @@ XTest = x(testInds,:);
 YTest = t(testInds);
 error = loss(CompactSVMModel,XTest,YTest);
 score = error;
-%score = error + sum(sequence)*0.002;
+% score = error + sum(sequence)*0.005; %0.002 is good?
 
 %% Parameter optimiser
 % SVMModel = fitcsvm(x,t,'KernelFunction','rbf', 'KernelScale', 'auto', ...

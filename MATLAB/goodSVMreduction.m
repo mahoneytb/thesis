@@ -1,7 +1,6 @@
-clear
 load('finalAnnSet.mat')
 load('finalFeatureSet.mat')
-load('goodsvm8.mat')
+load('goodsvm3.mat')
 
 remove = 1; % 0
 idx = [];
@@ -34,26 +33,40 @@ original_score = SVM(features, anList, goodsvm);
 remove = [];
 rng(1);
 again = 1;
-while again
+tracking = original_score;
+original_score = original_score;
+newsvm = goodsvm;
+tracksvm = [];
+tic
+while sum(newsvm)
+    tracksvm = [tracksvm, newsvm];
     again = 0;
-    idx = find(goodsvm==1);
-    for i = 1:length(idx)
-        newsvm = goodsvm;
+    idx = find(newsvm==1);
+    newsvm(idx(1)) = 0;
+    first_score = SVM(features, anList, newsvm);
+    diff1 = original_score - first_score;
+    newsvm(idx(1)) = 1;
+    bestIDX = 1;
+    for i = 2:length(idx)
         newsvm(idx(i)) = 0;
         new_score = SVM(features, anList, newsvm);
-        if (new_score < 0.24)
-            goodsvm(idx(i)) = 0;
-            remove = [remove, idx(i)];
-            again = 1;
-            original_score = new_score;
-            disp(original_score)
-            disp(sum(goodsvm))
-            break;
+        diff2 = original_score - new_score;
+        if diff1 < diff2
+            diff1 = diff2;
+            bestIDX = i;
+            bestScore = new_score;
         end
+        newsvm(idx(i)) = 1;
     end
+    newsvm(idx(bestIDX)) = 0;
+    original_score = bestScore;
+    disp(original_score)
+    disp(sum(newsvm))
+    tracking = [tracking, original_score];
 end
-
+toc
 disp(original_score)
 disp(sum(goodsvm))
     
+% ~30 hours for full backward elimination
     
